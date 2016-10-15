@@ -65,26 +65,29 @@ ctw.textwrap = function () {
     // returns BBox
     function textBBDim(text, vars){
         var wordElement = _gElement.append("text").text(text);
-        var wordBBox = wordElement.node().getBBox();
+        var wordElementNode = wordElement.node();
+
+        wordElementNode.setAttribute("style", vars.textStyle);
+        var wordBBox = wordElementNode.getBBox();
+
         wordElement.remove();
         return wordBBox
     }
 
     function parseTextAttributes(vars){
         vars.fontSize = null; // font size of base text
-        vars.textAnchor = null; // anchor of base text
         vars.textBBox = null; // BBox of base text
         vars.textY = null; // BB y position of base text
         vars.wordsWidht = []; // array containing BB width of each word
-        vars.textMinWidth = 3; //minimum text width
+        vars.textFirstWordWidth = 3; //minimum text width
 
-
+        vars.textStyle = vars.textBaseElement.node().attributes["style"].textContent;
 
         vars.fontSize = parseFloat(vars.textBaseElement.attr("font-size") || vars.textBaseElement.style("font-size"));
-
+        // console.log(vars.fontSize);
         vars.textBaseElement.attr("dy",0);
-        // vars.textAnchor =
-        vars.textAnchor = vars.textBaseElement.attr("text-anchor") || vars.textBaseElement.style("text-anchor");
+
+
         vars.textBBox = vars.textBaseElement.node().getBBox();
         vars.textY = vars.textBBox.y;
         vars.textBaseElement.node().getBBox();
@@ -99,11 +102,11 @@ ctw.textwrap = function () {
         vars.words = vars.text.match(wordBreak);
 
         for(var widx =0; widx < vars.words.length; widx++){
-            vars.wordsWidht.unshift(textBBDim(vars.words[widx]).width);
+            vars.wordsWidht.unshift(textBBDim(vars.words[widx], vars).width);
         }
         vars.wordsWidht.reverse();
         //console.log('firstWord',vars.words);
-        vars.textMinWidth = vars.wordsWidht[0];
+        vars.textFirstWordWidth = vars.wordsWidht[0];
     }
 
 
@@ -113,7 +116,7 @@ ctw.textwrap = function () {
 
     // add ... at the end of word and adjust it
     function addEllipsis(word, spaceLeft, lineText){
-        return "#TO IMPLEMENT";
+        return "#TO BE IMPLEMENTED";
         //
         // var tmpWord = word;
         // var ellipsis = "\u2026";
@@ -196,8 +199,9 @@ ctw.textwrap = function () {
         vars.textBaseElement.remove();
         //
         // find starting line and fit at least 1 word
-        while(lines[line].width < vars.textMinWidth){
-            //console.log("not long enough",line,lines[line].width, vars.textMinWidth)
+        // console.log(lines[line].width, vars.textFirstWordWidth);
+        while(lines[line].width < vars.textFirstWordWidth){
+            //console.log("not long enough",line,lines[line].width, vars.textFirstWordWidth)
             line--;
         }
 
@@ -205,10 +209,11 @@ ctw.textwrap = function () {
         function addTextElement(text, dy){
             var baseClasses = vars.textBaseElement.classed("wrap", false).classed("wrapped", true).attr("class");
 
-            console.log("classes", baseClasses);
+            // console.log("classes", baseClasses);
 
             vars.gElement.append("text").attr("dy",dy).text(text)
-                .attr("text-anchor","middle").attr("dominant-baseline","central")
+                .style("text-anchor","middle").style("dominant-baseline","central")
+                .style("font-size", vars.fontSize)
                 .classed(baseClasses,true);
         }
 

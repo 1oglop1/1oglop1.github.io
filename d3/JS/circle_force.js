@@ -10,6 +10,7 @@ d3.json("../JSON/graph.json", function (error, graph){
 
 var width = window.innerWidth;
 var height = window.innerHeight;
+var base_font_size = 12;
 
 var svg = d3.select("body").append("svg")
     .attr("width", width)
@@ -35,6 +36,8 @@ var simulation = d3.forceSimulation()
     .force("charge", d3.forceManyBody().strength(-900))
     .force("center", d3.forceCenter(width / 2, height / 2));
 
+
+
 function main(graph){
 
   var link = zoom_box.append("g")
@@ -44,10 +47,12 @@ function main(graph){
     .enter().append("line");
 
   var node = zoom_box.append("g")
-      .attr("class", "nodes")
+      .classed("nodes", true)
     .selectAll("circle")
     .data(graph.nodes)
-    .enter().append("g").attr("class", "node")
+    .enter().append("g")
+    .attr("class", function (d) { return "node " + d.label;})
+    .attr("id", function (d) { return "n" + d.id;})
       .call(d3.drag()
           .on("start", dragstarted)
           .on("drag", dragged)
@@ -55,8 +60,18 @@ function main(graph){
 
   node.append("circle").attr("r", 30);
 
+
+
   node.append("text")
+      .attr("class", "wrap")
+      .attr("dy",0)
+      .style("text-anchor","middle")
+      .style("font-size", base_font_size)
+      .style("dominant-baseline", "central")
       .text(function(d) { return d.name; });
+
+  //  apply text wrap on nodes
+  ctw.textwrap().container(node).draw();
 
   simulation
       .nodes(graph.nodes)
@@ -66,19 +81,18 @@ function main(graph){
       .links(graph.links);
 
   function ticked() {
+    //  update link position
     link
         .attr("x1", function(d) { return d.source.x; })
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
 
-    // node
-    //     .attr("cx", function(d) { return d.x; })
-    //     .attr("cy", function(d) { return d.y; });
-
+     // update node position
      node.attr("transform", function (d) {
        return "translate(" + d.x + "," + d.y + ")"; });
   }
+
 }
 
 function dragstarted(d) {
