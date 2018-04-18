@@ -8,7 +8,7 @@ before_install:
 script:
   - ls -la
   - cd source
-  - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/jans-workshops/install-python3.git
+  - git clone https://gitlab.com/jans-workshops/install-python3.git
   - cd ..
   - ls -la source
   - make html

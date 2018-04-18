@@ -1,0 +1,6 @@
+# Ignore everything in directory
+*
+# except
+!.gitignore
+!conf.py
+!index.rst

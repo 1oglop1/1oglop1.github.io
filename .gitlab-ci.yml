@@ -1,0 +1,23 @@
+image: python:latest
+
+
+pages:deploy:
+  script:
+    - ls -la
+    - cd source
+    - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/jans-workshops/install-python3.git
+    - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/jans-workshops/pip-lab.git
+    - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/jans-workshops/python-virtual-environments.git
+    - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/jans-workshops/python-shells.git
+    - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/jans-workshops/modules-packages-1.git
+    - cd ..
+    - ls -la source
+    - pip install sphinx python-docs-theme
+    - make html
+    - mv build/html/ ./public/
+  artifacts:
+    paths:
+    - public
+  only:
+    - master
+
