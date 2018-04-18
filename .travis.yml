@@ -2,5 +2,12 @@ language: python
 python:
   - "3.6"
 
+before_install:
+  - pip install sphinx python-docs-theme
+
 script:
-  - echo "test"
+  - cd source
+  - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/jans-workshops/install-python3.git
+  - cd ..
+  - ls -la source
+  - make html

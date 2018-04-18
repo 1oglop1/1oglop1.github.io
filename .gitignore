@@ -1,12 +1,3 @@
-# Created by .ignore support plugin (hsz.mobi)
-### Example user template template
-### Example user template
-# sd
-# IntelliJ project files
-.idea
-*.iml
-out
-gen### Python template
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -18,9 +9,9 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-build/
 develop-eggs/
 dist/
+build/
 downloads/
 eggs/
 .eggs/
@@ -29,6 +20,7 @@ lib64/
 parts/
 sdist/
 var/
+wheels/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -70,12 +62,12 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
+# docs/_build/
 
 # PyBuilder
 target/
 
-# IPython Notebook
+# Jupyter Notebook
 .ipynb_checkpoints
 
 # pyenv
@@ -84,16 +76,32 @@ target/
 # celery beat schedule file
 celerybeat-schedule
 
+# SageMath parsed files
+*.sage.py
+
 # dotenv
 .env
 
 # virtualenv
+.venv
 venv/
 ENV/
 
 # Spyder project settings
 .spyderproject
+.spyproject
+
+.idea/
 
 # Rope project settings
 .ropeproject
 
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+temp.py
+desktop.ini
+*.csv
+*.sqlite
