@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Deployment Sim</title>
+    <style>
+      :root {
+        --bg: #f5f3f0;
+        --text: #1a1a1a;
+        --text-muted: #6b7280;
+        --border: #e5e2de;
+        --surface: #ffffff;
+        --surface-hover: #f5f3f0;
+        --border-hover: #c0bdb8;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          'Inter',
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+      }
+
+      .wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 2rem 1rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--text);
+      }
+
+      .meta {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      .board {
+        display: grid;
+        grid-template-columns: 7rem 9rem 7rem;
+        gap: 0.75rem;
+        align-items: stretch;
+      }
+
+      .col {
+        display: grid;
+        grid-template-rows: repeat(4, 1fr);
+        gap: 0.5rem;
+      }
+
+      .cell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .center {
+        display: grid;
+        grid-template-rows: 1fr 2fr 1fr;
+        gap: 0.5rem;
+      }
+
+      .pool {
+        flex: 1;
+        min-height: 5rem;
+        background: var(--pool-color);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: white;
+        font-size: 1.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          transform 0.08s ease,
+          filter 0.12s ease,
+          opacity 0.12s ease;
+        display: grid;
+        place-items: center;
+      }
+
+      .pool:hover:not(:disabled) {
+        filter: brightness(1.15);
+        transform: scale(1.03);
+      }
+
+      .pool:active:not(:disabled) {
+        transform: scale(0.97);
+      }
+
+      .pool:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+
+      .pool.locked {
+        filter: grayscale(0.7) brightness(0.6);
+        opacity: 0.65;
+      }
+
+      .pool.locked .cap {
+        font-size: 2rem;
+        text-shadow: none;
+      }
+
+      .cap {
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+      }
+
+      .cap-input {
+        width: 100%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text);
+        font-size: 1rem;
+        font-weight: 700;
+        text-align: center;
+        padding: 0.25rem;
+        font-family: inherit;
+      }
+
+      .cap-input:focus {
+        outline: none;
+        border-color: var(--border-hover);
+      }
+
+      .cap-input.hidden {
+        visibility: hidden;
+      }
+
+      .weight {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        column-gap: 0.35rem;
+        row-gap: 0.1rem;
+      }
+
+      .weight-label {
+        grid-column: 1 / -1;
+        font-size: 0.65rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .weight-slider {
+        min-width: 0;
+        width: 100%;
+        accent-color: var(--pool-color, var(--text));
+        cursor: pointer;
+      }
+
+      .weight-val {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        min-width: 2.25rem;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .participate {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .participate input {
+        accent-color: var(--pool-color);
+        cursor: pointer;
+      }
+
+      .random {
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+        font-size: 0.85rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        transition:
+          background 0.12s ease,
+          border-color 0.12s ease;
+      }
+
+      .random:hover {
+        background: var(--surface-hover);
+        border-color: var(--border-hover);
+      }
+
+      .dice {
+        font-size: 1.75rem;
+        line-height: 1;
+      }
+
+      .rand-label {
+        color: var(--text-muted);
+      }
+
+      .boat {
+        background: radial-gradient(circle at center, #e7d9b0 0%, #8a7a4a 70%, #3b3320 100%);
+        border: 3px solid #d4b86a;
+        border-radius: 50%;
+        color: #1a1a1a;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 0.35rem;
+      }
+
+      .boat-label {
+        font-size: 0.75rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #3b2f14;
+      }
+
+      .boat-count {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #1a1a1a;
+      }
+
+      .boat-bar {
+        width: 80%;
+        height: 4px;
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .boat-fill {
+        display: block;
+        height: 100%;
+        background: #1a1a1a;
+        transition: width 0.15s ease;
+      }
+
+      .empty {
+        border: 2px dashed var(--border);
+        border-radius: 8px;
+        opacity: 0.4;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Deployment Sim</h1>
+      <p class="meta">Dispatched boats: <strong id="dispatched">0</strong></p>
+
+      <div class="board">
+        <div class="col" id="col-left"></div>
+
+        <div class="center">
+          <button class="random" id="random-btn" aria-label="Random">
+            <span class="dice">🎲</span>
+            <span class="rand-label">Random</span>
+          </button>
+
+          <div class="boat">
+            <span class="boat-label">Boat</span>
+            <span class="boat-count"><span id="boat-count">0</span> / <span id="boat-cap"></span></span>
+            <span class="boat-bar"><span class="boat-fill" id="boat-fill" style="width:0%"></span></span>
+          </div>
+
+          <div class="empty"></div>
+        </div>
+
+        <div class="col" id="col-right"></div>
+      </div>
+    </div>
+
+    <script>
+      const BOAT_CAPACITY = 20;
+      const POOL_MAX = 99;
+      const LEFT_COUNT = 4;
+      const PURPLE_IDX = 4;
+
+      const pools = [
+        { color: '#1e3a8a', label: 'blue', capacity: 12, weight: 1.0 },
+        { color: '#166534', label: 'green', capacity: 7, weight: 1.0 },
+        { color: '#991b1b', label: 'red', capacity: 11, weight: 1.0 },
+        { color: '#475569', label: 'gray', capacity: 9, weight: 0.3 },
+        { color: '#6b21a8', label: 'purple', capacity: 10, fallback: true, participates: true },
+        { color: '#854d0e', label: 'brown', capacity: 8 },
+        { color: '#0f766e', label: 'teal', capacity: 6, locked: true },
+        { color: '#c2410c', label: 'orange', capacity: 6, locked: true },
+      ];
+
+      let boat = 0;
+      let dispatched = 0;
+
+      const leftCol = document.getElementById('col-left');
+      const rightCol = document.getElementById('col-right');
+      const boatCountEl = document.getElementById('boat-count');
+      const boatFillEl = document.getElementById('boat-fill');
+      const dispatchedEl = document.getElementById('dispatched');
+      document.getElementById('boat-cap').textContent = BOAT_CAPACITY;
+
+      // Per-cell handles for targeted updates (no full re-render — inputs keep focus).
+      const cellRefs = [];
+
+      function updatePoolUI(i) {
+        const ref = cellRefs[i];
+        const p = pools[i];
+        if (!ref) return;
+        ref.cap.textContent = p.locked ? '🔒' : String(p.capacity);
+        ref.btn.disabled = !!p.locked || p.capacity <= 0;
+      }
+
+      function updateBoatUI() {
+        boatCountEl.textContent = String(boat);
+        boatFillEl.style.width = `${(boat / BOAT_CAPACITY) * 100}%`;
+        dispatchedEl.textContent = String(dispatched);
+      }
+
+      function board(i) {
+        const p = pools[i];
+        if (p.locked || p.capacity <= 0) return;
+        p.capacity -= 1;
+        boat += 1;
+        if (boat >= BOAT_CAPACITY) {
+          dispatched += 1;
+          boat = 0;
+        }
+        // Sync the cap-input too so the displayed number matches the model.
+        if (cellRefs[i]?.input) cellRefs[i].input.value = String(p.capacity);
+        updatePoolUI(i);
+        updateBoatUI();
+      }
+
+      function randomize() {
+        const eligible = [];
+        const weights = [];
+        for (let i = 0; i < LEFT_COUNT; i++) {
+          const p = pools[i];
+          if (p.locked || p.capacity <= 0) continue;
+          const w = p.weight ?? 0;
+          if (w <= 0) continue;
+          eligible.push(i);
+          weights.push(w);
+        }
+        if (eligible.length === 0) {
+          const p = pools[PURPLE_IDX];
+          if (p.participates && !p.locked && p.capacity > 0) board(PURPLE_IDX);
+          return;
+        }
+        const total = weights.reduce((a, b) => a + b, 0);
+        let r = Math.random() * total;
+        let picked = eligible[eligible.length - 1];
+        for (let k = 0; k < eligible.length; k++) {
+          r -= weights[k];
+          if (r <= 0) {
+            picked = eligible[k];
+            break;
+          }
+        }
+        board(picked);
+      }
+
+      function setCapacity(i, raw) {
+        const n = parseInt(raw, 10);
+        if (Number.isNaN(n)) return;
+        pools[i].capacity = Math.max(0, Math.min(POOL_MAX, n));
+        updatePoolUI(i);
+      }
+
+      function setWeight(i, raw) {
+        const n = parseFloat(raw);
+        if (Number.isNaN(n)) return;
+        pools[i].weight = Math.max(0, Math.min(1, n));
+        if (cellRefs[i]?.weightVal) {
+          cellRefs[i].weightVal.textContent = `${((pools[i].weight * 100) | 0)}%`;
+        }
+      }
+
+      function buildCell(i) {
+        const p = pools[i];
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.style.setProperty('--pool-color', p.color);
+
+        const btn = document.createElement('button');
+        btn.className = 'pool' + (p.locked ? ' locked' : '');
+        btn.disabled = !!p.locked || p.capacity <= 0;
+        btn.addEventListener('click', () => board(i));
+        const cap = document.createElement('span');
+        cap.className = 'cap';
+        cap.textContent = p.locked ? '🔒' : String(p.capacity);
+        btn.appendChild(cap);
+        cell.appendChild(btn);
+
+        const input = document.createElement('input');
+        input.className = 'cap-input' + (p.locked ? ' hidden' : '');
+        input.type = 'number';
+        input.min = '0';
+        input.max = String(POOL_MAX);
+        input.value = String(p.capacity);
+        input.setAttribute('aria-label', `${p.label} capacity`);
+        input.addEventListener('input', (e) => setCapacity(i, e.currentTarget.value));
+        cell.appendChild(input);
+
+        let weightVal = null;
+        if (i < LEFT_COUNT && !p.locked) {
+          const wrap = document.createElement('div');
+          wrap.className = 'weight';
+          const lbl = document.createElement('span');
+          lbl.className = 'weight-label';
+          lbl.textContent = 'chance';
+          wrap.appendChild(lbl);
+          const slider = document.createElement('input');
+          slider.className = 'weight-slider';
+          slider.type = 'range';
+          slider.min = '0';
+          slider.max = '1';
+          slider.step = '0.05';
+          slider.value = String(p.weight ?? 0);
+          slider.setAttribute('aria-label', `${p.label} weight`);
+          slider.addEventListener('input', (e) => setWeight(i, e.currentTarget.value));
+          wrap.appendChild(slider);
+          weightVal = document.createElement('span');
+          weightVal.className = 'weight-val';
+          weightVal.textContent = `${(((p.weight ?? 0) * 100) | 0)}%`;
+          wrap.appendChild(weightVal);
+          cell.appendChild(wrap);
+        }
+
+        if (p.fallback && !p.locked) {
+          const label = document.createElement('label');
+          label.className = 'participate';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = !!p.participates;
+          cb.addEventListener('change', (e) => {
+            p.participates = e.currentTarget.checked;
+          });
+          const span = document.createElement('span');
+          span.textContent = 'fallback';
+          label.appendChild(cb);
+          label.appendChild(span);
+          cell.appendChild(label);
+        }
+
+        cellRefs[i] = { cell, btn, cap, input, weightVal };
+        return cell;
+      }
+
+      for (let i = 0; i < 4; i++) leftCol.appendChild(buildCell(i));
+      for (let i = 4; i < 8; i++) rightCol.appendChild(buildCell(i));
+      updateBoatUI();
+
+      document.getElementById('random-btn').addEventListener('click', randomize);
+    </script>
+  </body>
+</html>
